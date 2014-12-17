@@ -15,8 +15,6 @@
       container = document.getElementById('scene');
       container.appendChild(element);
       
-      effect = new THREE.StereoEffect(renderer);
-
       scene = new THREE.Scene();
 
       camera = new THREE.PerspectiveCamera(90, 1, 0.001, 700);
@@ -38,23 +36,6 @@
       );
       controls.noZoom = true;
       controls.noPan = true;
-
-      function setOrientationControls(e) {
-        if (!e.alpha) {
-          return;
-        }
-
-        controls = new THREE.DeviceOrientationControls(camera, true);
-        controls.connect();
-        controls.update();
-        controls.update();
-
-        element.addEventListener('click', fullscreen, false);
-
-        window.removeEventListener('deviceorientation', setOrientationControls);
-      }
-      window.addEventListener('deviceorientation', setOrientationControls, true);
-
 
       var light = new THREE.HemisphereLight(0x777777, 0x000000, 0.6);
       scene.add(light);
@@ -85,46 +66,24 @@
       setTimeout(resize, 1);
     }
 
+    function update(deltaTime) {
+      resize();
+      controls.update(deltaTime);
+      cardboard.update();
+    }
+    
+    function render(deltaTime) {
+      cardboard.render();
+    }
+    
     function resize() {
       var width = container.offsetWidth;
       var height = container.offsetHeight;
-      var width = container.offsetWidth;
-      var height = container.offsetHeight;
-
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-
-      renderer.setSize(width, height);
-      effect.setSize(width, height);
+      cardboard.resize(width, height)
     }
 
-    function update(dt) {
-      resize();
-
-      camera.updateProjectionMatrix();
-
-      controls.update(dt);
-    }
-
-    function render(dt) {
-      effect.render(scene, camera);
-    }
-
-    function animate(t) {
+    function animate(time) {
       requestAnimationFrame(animate);
-
       update(clock.getDelta());
       render(clock.getDelta());
-    }
-
-    function fullscreen() {
-      if (container.requestFullscreen) {
-        container.requestFullscreen();
-      } else if (container.msRequestFullscreen) {
-        container.msRequestFullscreen();
-      } else if (container.mozRequestFullScreen) {
-        container.mozRequestFullScreen();
-      } else if (container.webkitRequestFullscreen) {
-        container.webkitRequestFullscreen();
-      }
     }
