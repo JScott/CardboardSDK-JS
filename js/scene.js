@@ -12,7 +12,7 @@
       element = renderer.domElement;
       container = document.getElementById('scene');
       container.appendChild(element);
-
+      
       effect = new THREE.StereoEffect(renderer);
 
       scene = new THREE.Scene();
