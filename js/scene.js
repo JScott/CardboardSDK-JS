@@ -4,6 +4,8 @@
 
     var clock = new THREE.Clock();
 
+    var cardboard = THREE.Cardboard;
+
     init();
     animate();
 
@@ -21,6 +23,12 @@
       camera.position.set(0, 10, 0);
       scene.add(camera);
 
+      cardboard.init({
+        renderer: renderer,
+        camera: camera,
+        scene: scene
+      });
+      
       controls = new THREE.OrbitControls(camera, element);
       controls.rotateUp(Math.PI / 4);
       controls.target.set(
