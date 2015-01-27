@@ -1,3 +1,4 @@
+/* globals THREE */
 /**
  * DeviceOrientationControls - applies device orientation on object rotation
  *
@@ -13,6 +14,39 @@
  * W3C Device Orientation control
  * (http://w3c.github.io/deviceorientation/spec-source-orientation.html)
  */
+
+(function() {
+
+  var deviceOrientation = {};
+  var screenOrientation = window.orientation || 0;
+
+  function onDeviceOrientationChangeEvent(evt) {
+    deviceOrientation = evt;
+  }
+  window.addEventListener('deviceorientation', onDeviceOrientationChangeEvent, false);
+
+  function getOrientation() {
+    switch (window.screen.orientation || window.screen.mozOrientation) {
+      case 'landscape-primary':
+        return 90;
+      case 'landscape-secondary':
+        return -90;
+      case 'portrait-secondary':
+        return 180;
+      case 'portrait-primary':
+        return 0;
+    }
+    // this returns 90 if width is greater then height
+    // and window orientation is undefined OR 0
+    // if (!window.orientation && window.innerWidth > window.innerHeight)
+    //   return 90;
+    return window.orientation || 0;
+  }
+
+  function onScreenOrientationChangeEvent() {
+    screenOrientation = getOrientation();
+  }
+  window.addEventListener('orientationchange', onScreenOrientationChangeEvent, false);
 
 
 THREE.DeviceOrientationControls = function(object) {
@@ -51,60 +85,28 @@ THREE.DeviceOrientationControls = function(object) {
   var q0 = new THREE.Quaternion(); // - PI/2 around the x-axis
   var q1 = new THREE.Quaternion(- Math.sqrt(0.5), 0, 0, Math.sqrt(0.5));
 
-  this.deviceOrientation = {};
-  this.screenOrientation = window.orientation || 0;
 
-  this.onDeviceOrientationChangeEvent = (function(rawEvtData) {
+  this.update = (function(delta) {
 
-    this.deviceOrientation = rawEvtData;
-
-  }).bind(this);
-
-  var getOrientation = function() {
-    switch (window.screen.orientation || window.screen.mozOrientation) {
-      case 'landscape-primary':
-        return 90;
-      case 'landscape-secondary':
-        return -90;
-      case 'portrait-secondary':
-        return 180;
-      case 'portrait-primary':
-        return 0;
-    }
-    // this returns 90 if width is greater then height 
-    // and window orientation is undefined OR 0
-    // if (!window.orientation && window.innerWidth > window.innerHeight)
-    //   return 90;
-    return window.orientation || 0;
-  };
-
-  this.onScreenOrientationChangeEvent = (function() {
-
-    this.screenOrientation = getOrientation();
-
-  }).bind(this);
-
-  this.update = function(delta) {
-
-    return function() {
+    return function(delta) {
 
       if (this.freeze) return;
 
       // should not need this
-      var orientation = getOrientation(); 
-      if (orientation !== this.screenOrientation) {
-        this.screenOrientation = orientation;
-        this.autoAlign = true;
-      }
+      //var orientation = getOrientation();
+      //if (orientation !== this.screenOrientation) {
+        //this.screenOrientation = orientation;
+        //this.autoAlign = true;
+      //}
 
-      this.alpha = this.deviceOrientation.gamma ?
-        THREE.Math.degToRad(this.deviceOrientation.alpha) : 0; // Z
-      this.beta = this.deviceOrientation.beta ?
-        THREE.Math.degToRad(this.deviceOrientation.beta) : 0; // X'
-      this.gamma = this.deviceOrientation.gamma ?
-        THREE.Math.degToRad(this.deviceOrientation.gamma) : 0; // Y''
-      this.orient = this.screenOrientation ?
-        THREE.Math.degToRad(this.screenOrientation) : 0; // O
+      this.alpha = deviceOrientation.gamma ?
+        THREE.Math.degToRad(deviceOrientation.alpha) : 0; // Z
+      this.beta = deviceOrientation.beta ?
+        THREE.Math.degToRad(deviceOrientation.beta) : 0; // X'
+      this.gamma = deviceOrientation.gamma ?
+        THREE.Math.degToRad(deviceOrientation.gamma) : 0; // Y''
+      this.orient = screenOrientation ?
+        THREE.Math.degToRad(screenOrientation) : 0; // O
 
       // The angles alpha, beta and gamma
       // form a set of intrinsic Tait-Bryan angles of type Z-X'-Y''
@@ -149,12 +151,12 @@ THREE.DeviceOrientationControls = function(object) {
 
     };
 
-  }();
+  })();
 
   // //debug
   // window.addEventListener('click', (function(){
   //   this.align();
-  // }).bind(this)); 
+  // }).bind(this));
 
   this.align = function() {
 
@@ -174,28 +176,14 @@ THREE.DeviceOrientationControls = function(object) {
   };
 
   this.connect = function() {
-
-    // run once on load
-    this.onScreenOrientationChangeEvent();
-
-    // window.addEventListener('orientationchange', this.onScreenOrientationChangeEvent, false);
-    window.addEventListener('deviceorientation', this.onDeviceOrientationChangeEvent, false);
-
     this.freeze = false;
-
-    return this;
-
   };
 
   this.disconnect = function() {
-
-    this.freeze = true;
-
-    // window.removeEventListener('orientationchange', this.onScreenOrientationChangeEvent, false);
-    window.removeEventListener('deviceorientation', this.onDeviceOrientationChangeEvent, false);
-
+    this.freze = true;
   };
 
-
 };
+
+})();
 
